@@ -1,0 +1,41 @@
+openapi: 3.0.3
+info:
+  title: MAFRA Safe Restaurant Search
+  version: 0.1.0
+servers:
+  - url: https://YOUR_PUBLIC_API_DOMAIN
+paths:
+  /restaurants:
+    get:
+      operationId: searchSafeRestaurants
+      summary: 농림축산식품부 안심식당 조회
+      parameters:
+        - name: sido
+          in: query
+          required: false
+          schema: {type: string, default: 충청남도}
+        - name: sigungu
+          in: query
+          required: true
+          schema: {type: string}
+        - name: category
+          in: query
+          required: false
+          schema: {type: string, example: 한식}
+        - name: limit
+          in: query
+          required: false
+          schema: {type: integer, minimum: 1, maximum: 1000, default: 20}
+      responses:
+        '200':
+          description: 조회 결과
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  source: {type: string}
+                  count: {type: integer}
+                  restaurants:
+                    type: array
+                    items: {type: object}
