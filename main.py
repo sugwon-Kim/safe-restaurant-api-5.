@@ -4,6 +4,7 @@ from typing import Any
 
 import httpx
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import HTMLResponse
 
 app = FastAPI(
     title="MAFRA Safe Restaurant API",
@@ -95,6 +96,11 @@ async def _fetch_all(
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/", response_class=HTMLResponse)
+async def home() -> str:
+    return """<!doctype html><html lang='ko'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>안심식당 찾기</title><style>body{font-family:Arial,'Malgun Gothic';background:#f4f7fb;color:#172033;margin:0}.wrap{max-width:900px;margin:auto;padding:28px 16px}.hero{background:#173b69;color:white;border-radius:18px;padding:24px;margin-bottom:16px}h1{margin:0 0 8px}.search{background:white;border-radius:14px;padding:16px;display:flex;gap:8px;flex-wrap:wrap}input,button{padding:12px;border:1px solid #d5dce8;border-radius:9px;font-size:15px}input{flex:1;min-width:150px}button{background:#2878d0;color:white;font-weight:bold;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}.card{background:white;border-radius:14px;padding:16px;box-shadow:0 3px 12px #0000000d}.tag{color:#1764ad;font-size:13px}.line{margin-top:7px;color:#56657c;font-size:14px}@media(max-width:650px){.grid{grid-template-columns:1fr}}</style><main class='wrap'><section class='hero'><h1>안심식당 찾기</h1><div>농림축산식품부 데이터를 바탕으로 지역별 안심식당을 조회합니다.</div></section><form class='search' id='f'><input id='sido' value='전북특별자치도' placeholder='시도명'><input id='sigungu' value='전주시' placeholder='시군구명' required><input id='category' value='한식' placeholder='업종'><button>검색</button></form><p id='meta'>조회 중...</p><section class='grid' id='r'></section></main><script>const f=document.querySelector('#f'),m=document.querySelector('#meta'),r=document.querySelector('#r');const e=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));async function load(x){x&&x.preventDefault();m.textContent='조회 중...';const q=new URLSearchParams({sido:sido.value,sigungu:sigungu.value,category:category.value,limit:'100'});try{const d=await (await fetch('/restaurants?'+q)).json();m.textContent=`${d.query.sido} ${d.query.sigungu} · ${d.query.category||'전체'} · ${d.restaurants.length}곳`;r.innerHTML=d.restaurants.map(x=>`<article class='card'><h3>${e(x.name)}</h3><div class='tag'>${e(x.category_detail||x.category)}</div><div class='line'>📍 ${e(x.address)}</div><div class='line'>☎ ${e(x.phone||'전화번호 없음')}</div><div class='line'>지정 ${e(x.designated_date||'-')} · 수정 ${e(x.updated_at||'-')}</div></article>`).join('')}catch(z){m.textContent='조회 실패';r.innerHTML='<p>API 키와 Render 로그를 확인해 주세요.</p>'}}f.addEventListener('submit',load);load();</script></html>"""
 
 
 @app.get("/restaurants")
