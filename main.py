@@ -83,25 +83,26 @@ async def _fetch_all(
     try:
         async with httpx.AsyncClient(timeout=20) as client:
             response = await client.get(url, params=params)
-
-if response.status_code != 200:
-    raise HTTPException(
-        status_code=502,
-        detail=f"농식품부 응답 오류: HTTP {response.status_code} / {response.text[:500]}",
-    )
-
-try:
-    data = response.json()
-except ValueError:
-    raise HTTPException(
-        status_code=502,
-        detail=f"농식품부 응답이 JSON이 아닙니다: {response.text[:500]}",
-    )
-except httpx.HTTPError as exc:
-    raise HTTPException(
-        status_code=502,
-        detail=f"농식품부 API 접속 실패: {type(exc).__name__} / {str(exc)}",
-    )
+            if response.status_code != 200:
+                body = response.text[:500]
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"농식품부 응답 오류: HTTP {response.status_code} / {body}",
+                )
+            try:
+                data = response.json()
+            except ValueError:
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"농식품부 응답이 JSON이 아닙니다: {response.text[:500]}",
+                )
+    except HTTPException:
+        raise
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"농식품부 API 접속 실패: {type(exc).__name__} / {str(exc)}",
+        )
 
     root = data.get(MAFRA_API_URL, data) if isinstance(data, dict) else {}
     rows = _as_list(root.get("row") if isinstance(root, dict) else None)
