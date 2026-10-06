@@ -97,8 +97,11 @@ except ValueError:
         status_code=502,
         detail=f"농식품부 응답이 JSON이 아닙니다: {response.text[:500]}",
     )
-    except (httpx.HTTPError, ValueError) as exc:
-        raise HTTPException(status_code=502, detail=f"농식품부 API 조회 실패: {exc}")
+except httpx.HTTPError as exc:
+    raise HTTPException(
+        status_code=502,
+        detail=f"농식품부 API 접속 실패: {type(exc).__name__} / {str(exc)}",
+    )
 
     root = data.get(MAFRA_API_URL, data) if isinstance(data, dict) else {}
     rows = _as_list(root.get("row") if isinstance(root, dict) else None)
