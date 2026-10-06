@@ -83,8 +83,20 @@ async def _fetch_all(
     try:
         async with httpx.AsyncClient(timeout=20) as client:
             response = await client.get(url, params=params)
-            response.raise_for_status()
-            data = response.json()
+
+if response.status_code != 200:
+    raise HTTPException(
+        status_code=502,
+        detail=f"농식품부 응답 오류: HTTP {response.status_code} / {response.text[:500]}",
+    )
+
+try:
+    data = response.json()
+except ValueError:
+    raise HTTPException(
+        status_code=502,
+        detail=f"농식품부 응답이 JSON이 아닙니다: {response.text[:500]}",
+    )
     except (httpx.HTTPError, ValueError) as exc:
         raise HTTPException(status_code=502, detail=f"농식품부 API 조회 실패: {exc}")
 
